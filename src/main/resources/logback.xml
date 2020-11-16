@@ -1,0 +1,11 @@
+<configuration>
+    <appender name="stdout_json" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+    </appender>
+    <root level="info">
+        <appender-ref ref="stdout_json" />
+    </root>
+    <logger name="no.nav.security.token.support.core.validation.JwtTokenValidationHandler" level="debug">
+        <append-ref ref="stdout_json" />
+    </logger>
+</configuration>

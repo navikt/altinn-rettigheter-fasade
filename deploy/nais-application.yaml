@@ -1,0 +1,20 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: altinn-rettigheter-fasade
+  namespace: arbeidsgiver
+  labels:
+    team: arbeidsgiver
+spec:
+  image: {{image}}
+  prometheus:
+    enabled: true
+  idporten:
+    enabled: true
+  ingresses:
+    {{#each ingresses as |url|}}
+    - {{url}}
+    {{/each}}
+  envFrom:
+    - configmap: loginservice-idporten
+    - secret: altinn-rettigheter-fasade
