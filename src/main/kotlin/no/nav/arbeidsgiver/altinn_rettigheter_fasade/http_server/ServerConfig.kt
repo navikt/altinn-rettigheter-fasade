@@ -33,6 +33,10 @@ fun startHttpServer(
         }
 
         install(CallLogging) {
+            filter { call ->
+                !call.request.path().startsWith("/internal/")
+            }
+
             level = Level.INFO
             mdc("method") { call ->
                 call.request.httpMethod.value
@@ -53,17 +57,18 @@ fun startHttpServer(
         }
 
         routing {
-            get("/internal/liveness") {
-                call.respond(200)
-            }
+            route("internal") {
+                get("liveness") {
+                    call.respond(200)
+                }
 
-            get("/internal/readiness") {
-                call.respond(200)
-            }
+                get("readiness") {
+                    call.respond(200)
+                }
 
-            get("/metrics") {
-                call.respond(meterRegistry.scrape())
-
+                get("metrics") {
+                    call.respond(meterRegistry.scrape())
+                }
             }
 
             authenticate {
