@@ -95,11 +95,15 @@ class Altinn private constructor (
     }
 
     suspend fun getReportees(fnr: String): Collection<Reportee> =
-        httpClient.authenticatedGet(reporteesUrl, "subject" to fnr)
+        httpClient.authenticatedGet(reporteesUrl,
+            "subject" to fnr,
+            "\$filter" to "Type ne 'Person' and Status eq 'Active'"
+        )
 
     suspend fun getReportees(fnr: String, service: Service): Collection<Reportee> =
         httpClient.authenticatedGet( reporteesUrl,
             "subject" to fnr,
+            "\$filter" to "Type ne 'Person' and Status eq 'Active'",
             "serviceCode" to service.code,
             "serviceEditionCode" to service.editionCode
         )
