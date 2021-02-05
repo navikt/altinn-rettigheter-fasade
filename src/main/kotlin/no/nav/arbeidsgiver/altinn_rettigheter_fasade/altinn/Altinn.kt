@@ -7,6 +7,7 @@ import io.ktor.client.engine.apache.*
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.util.*
 import no.nav.arbeidsgiver.altinn_rettigheter_fasade.domene.DelegationRequest
 import no.nav.arbeidsgiver.altinn_rettigheter_fasade.domene.CreateDelegationRequest
 import no.nav.arbeidsgiver.altinn_rettigheter_fasade.domene.Reportee
@@ -34,12 +35,26 @@ class Altinn private constructor (
         "accept" to listOf("application/json")
     )
 
-    private val reporteesUrl = "$baseUrl/api/serviceowner/reportees?ForceEIAuthentication"
+    private val reporteesUrl = URLBuilder(baseUrl)
+        .pathComponents(
+            "api", "serviceowner", "reportees"
+        ).apply {
+            parameters.appendAll("ForceEIAuthentication", listOf())
+        }
 
-    private val delegationRequestUrl = "$baseUrl/api/serviceowner/delegationRequests?ForceEIAuthentication"
+    private val delegationRequestUrl = URLBuilder(baseUrl)
+        .pathComponents(
+            "api", "serviceowner", "delegationRequests"
+        )
+        .apply {
+            parameters.appendAll("ForceEIAuthentication", listOf())
+        }
 
     init {
-        log.info("reporteesUrl={} delegationRequestUrl={}", reporteesUrl, delegationRequestUrl)
+        log.info("reporteesUrl={} delegationRequestUrl={}",
+            reporteesUrl.buildString(),
+            delegationRequestUrl.buildString()
+        )
     }
 
     companion object {
@@ -64,33 +79,44 @@ class Altinn private constructor (
             )
     }
 
-    private suspend inline fun <reified T> HttpClient.authenticatedGet(url: String): T =
-        this.get(url) {
+    private suspend inline fun <reified T> HttpClient.authenticatedGet(
+        urlBuilder: URLBuilder,
+        vararg withParameters: Pair<String, String>
+    ): T {
+        val url = urlBuilder.clone().apply {
+            withParameters.forEach {
+                parameters.append(it.first, it.second)
+            }
+        }.build()
+
+        return this.get(url) {
             headers.appendAll(altinnheaders)
         }
+    }
 
     suspend fun getReportees(fnr: String): Collection<Reportee> =
-        httpClient.authenticatedGet(
-            "$reporteesUrl&subject=$fnr"
-        )
+        httpClient.authenticatedGet(reporteesUrl, "subject" to fnr)
 
     suspend fun getReportees(fnr: String, service: Service): Collection<Reportee> =
-        httpClient.authenticatedGet(
-            "$reporteesUrl&subject=$fnr&serviceCode=${service.code}&serviceEditionCode=${service.editionCode}"
+        httpClient.authenticatedGet( reporteesUrl,
+            "subject" to fnr,
+            "serviceCode" to service.code,
+            "serviceEditionCode" to service.editionCode
         )
 
     suspend fun getDelegationRequests(fnr: String): Collection<DelegationRequest> =
-        httpClient.authenticatedGet(
-            "$delegationRequestUrl&subject=$fnr"
-        )
+        httpClient.authenticatedGet(delegationRequestUrl, "subject" to fnr)
 
     suspend fun getDelegationRequests(fnr: String, service: Service): Collection<DelegationRequest> =
         httpClient.authenticatedGet(
-            "$delegationRequestUrl&subject=$fnr&serviceCode=${service.code}&serviceEditionCode=${service.editionCode}"
+            delegationRequestUrl,
+            "subject" to fnr,
+            "serviceCode" to service.code,
+            "serviceEditionCode" to service.editionCode
         )
 
     suspend fun postDelegationRequest(skjema: CreateDelegationRequest): DelegationRequest =
-        httpClient.post(delegationRequestUrl) {
+        httpClient.post(delegationRequestUrl.build()) {
             headers.appendAll(altinnheaders)
             body = skjema
         }

@@ -9,7 +9,6 @@ class Operasjoner(private val altinn: Altinn) {
 
     /* Hent alle organisasjoner som brukeren kan representere (reportee). */
     suspend fun alleOrganisasjoner(fnr: String): Collection<Reportee> {
-        log.info("fnr={}", fnr)
         return altinn.getReportees(fnr)
     }
 
