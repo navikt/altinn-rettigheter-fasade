@@ -10,7 +10,7 @@ fun main() {
             Issuer(
                 name = "https://fakedings.dev-gcp.nais.io/fake",
                 discoveryurl = "https://fakedings.dev-gcp.nais.io/fake/.well-known/openid-configuration",
-                accepted_audience = "notfound",
+                accepted_audience = "mockedaudience",
                 cookiename = "fakedings"
             )
         ),

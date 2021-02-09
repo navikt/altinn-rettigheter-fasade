@@ -4,7 +4,7 @@ import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.config.*
 import io.ktor.util.pipeline.*
-import no.nav.arbeidsgiver.altinn_rettigheter_fasade.util.getLog
+import no.nav.arbeidsgiver.altinn_rettigheter_fasade.util.getLogger
 import no.nav.security.token.support.ktor.TokenValidationContextPrincipal
 import no.nav.security.token.support.ktor.tokenValidationSupport
 import java.lang.IllegalStateException
@@ -17,11 +17,12 @@ data class Issuer(
 )
 
 data class AuthenticationConfig(
-    internal val ktorConfig: Authentication.Configuration.() -> Unit,
-    internal val fnrExtractor: PipelineContext<*, ApplicationCall>.() -> String
+    val ktorConfig: io.ktor.auth.Authentication.Configuration.() -> Unit,
+    val fnrExtractor: PipelineContext<*, ApplicationCall>.() -> String
 )
 
-private val log = getLog("no.nav.arbeidsgiver.altinn_rettigheter_fasade.http_server.Authentication")
+private class Authentication private constructor()
+private val log = getLogger(Authentication::class)
 
 fun createAuthenticationConfig(vararg issuers: Issuer): AuthenticationConfig {
     val issuerNames = issuers.map { it.name }

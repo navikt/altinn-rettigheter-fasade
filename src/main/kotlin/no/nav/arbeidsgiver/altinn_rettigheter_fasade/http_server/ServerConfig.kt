@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.altinn_rettigheter_fasade.http_server
 
+import com.fasterxml.jackson.databind.MapperFeature
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.features.*
@@ -11,6 +12,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.util.*
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import org.slf4j.event.Level
 import java.util.*
@@ -20,12 +22,16 @@ fun startHttpServer(
     endpoints: Route.() -> Unit,
     meterRegistry: PrometheusMeterRegistry
 ) {
+    val callIdKey = AttributeKey<String>("callId")
+
     embeddedServer(Netty, port = 8080) {
 
         install(Authentication, authenticationConfig.ktorConfig)
 
         install(ContentNegotiation) {
-            jackson()
+            jackson {
+               configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
+            }
         }
 
         install(MicrometerMetrics) {
@@ -44,15 +50,22 @@ fun startHttpServer(
             mdc("path") { call ->
                 call.request.path()
             }
-            mdc("callId") {
-                UUID.randomUUID().toString()
+            mdc("callId") { call ->
+                UUID.randomUUID().toString().also {
+                    call.attributes.put(callIdKey, it)
+                }
             }
         }
 
         install(StatusPages) {
             exception<Throwable> { ex ->
-                log.warn("Exception {}", ex.message, ex)
-                call.respond(HttpStatusCode.InternalServerError)
+                log.warn("unhandle exception in ktor pipeline: {}", ex::class.qualifiedName, ex)
+                call.respond(
+                    HttpStatusCode.InternalServerError, mapOf(
+                        "error" to "unexpected error",
+                        "callId" to call.attributes[callIdKey]
+                    )
+                )
             }
         }
 
