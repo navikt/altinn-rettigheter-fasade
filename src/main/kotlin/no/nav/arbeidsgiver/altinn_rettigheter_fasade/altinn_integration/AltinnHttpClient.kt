@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.altinn_rettigheter_fasade.altinn_integration
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
@@ -43,6 +44,7 @@ class AltinnHttpClient(
         install(JsonFeature) {
             serializer = JacksonSerializer {
                 enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
+                disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             }
         }
     };

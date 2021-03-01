@@ -77,7 +77,7 @@ object HttpDTO {
             Created = request.Created,
             LastChanged = request.LastChanged,
             RequestResources = request.RequestResources.map { RequestResource(it) },
-            SubmitRequestWebpageUrl = request._links.find { it.Rel == "x" }!!.Href
+            SubmitRequestWebpageUrl = request._links.find { it.Rel == "sendRequest" }!!.Href
         )
     }
 

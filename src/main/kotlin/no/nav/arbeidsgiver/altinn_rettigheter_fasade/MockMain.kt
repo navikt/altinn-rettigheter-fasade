@@ -2,6 +2,7 @@ package no.nav.arbeidsgiver.altinn_rettigheter_fasade
 
 import no.nav.arbeidsgiver.altinn_rettigheter_fasade.altinn_integration.MOCK_ALTINN_HTTP_CLIENT_BUILDER
 import no.nav.arbeidsgiver.altinn_rettigheter_fasade.http_rest_server.Issuer
+import org.slf4j.LoggerFactory
 
 fun main() {
     start(
