@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  image: docker.pkg.github.com/${{ github.repository }}/${{ github.event.repository.name }}
+  image: docker.pkg.github.com/${{ github.repository }}/${{ github.event.repository.name }}:${{ github.sha }}
 
 jobs:
   test:
@@ -44,7 +44,7 @@ jobs:
       - run: mvn -B -DskipTests package
 
       - run: |
-          docker build --tag $image:${{ github.sha }} -f deploy/Dockerfile .
+          docker build --tag $image -f deploy/Dockerfile .
           docker login docker.pkg.github.com -u $GITHUB_REPOSITORY -p ${{ secrets.GITHUB_TOKEN }}
           docker push $image
 
@@ -60,7 +60,7 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: ./deploy/nais-application.yaml
-          VAR: image=${{ env.image }}:${{ github.sha }}
+          VAR: image=${{ env.image }}
           VARS: deploy/dev-properties.yaml
 
   deploy-prod:
@@ -75,5 +75,5 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
           RESOURCE: ./deploy/nais-application.yaml
-          VAR: image=${{ env.image }}:${{ github.sha }}
+          VAR: image=${{ env.image }}
           VARS: deploy/prod-properties.yaml
