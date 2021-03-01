@@ -2,8 +2,7 @@ package no.nav.arbeidsgiver.altinn_rettigheter_fasade.util
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import kotlin.reflect.KClass
 
+inline fun <reified R : Any> R.logger(): Logger =
+    LoggerFactory.getLogger(this.javaClass.enclosingClass ?: this.javaClass)
 
-fun getLogger(name: String): Logger = LoggerFactory.getLogger(name)!!
-fun getLogger(clazz: KClass<*>): Logger = LoggerFactory.getLogger(clazz.java)

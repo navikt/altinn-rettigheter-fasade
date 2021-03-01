@@ -1,4 +1,4 @@
-package no.nav.arbeidsgiver.altinn_rettigheter_fasade.altinn.mock
+package no.nav.arbeidsgiver.altinn_rettigheter_fasade.altinn_integration.mock
 
 import no.nav.arbeidsgiver.altinn_rettigheter_fasade.domene.Service
 

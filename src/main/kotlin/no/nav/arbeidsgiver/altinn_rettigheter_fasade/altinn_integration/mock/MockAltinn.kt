@@ -1,20 +1,12 @@
-package no.nav.arbeidsgiver.altinn_rettigheter_fasade.altinn.mock
+package no.nav.arbeidsgiver.altinn_rettigheter_fasade.altinn_integration.mock
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import no.nav.arbeidsgiver.altinn_rettigheter_fasade.altinn.Altinn
-import no.nav.arbeidsgiver.altinn_rettigheter_fasade.domene.CreateDelegationRequest
-import no.nav.arbeidsgiver.altinn_rettigheter_fasade.domene.DelegationRequest
-import no.nav.arbeidsgiver.altinn_rettigheter_fasade.domene.Reportee
+import no.nav.arbeidsgiver.altinn_rettigheter_fasade.altinn_integration.AltinnDTO
 import no.nav.arbeidsgiver.altinn_rettigheter_fasade.domene.Service
 
-fun mockAltinn(): Altinn = Altinn(
-    httpClientEngine =  MockEngine,
-    httpClientEngineConfig = mockAltinnServer,
-    baseUrl = "http://altinn",
-)
 
 private val objectMapper = ObjectMapper()
 
@@ -24,7 +16,7 @@ private fun MockRequestHandleScope.jsonResponse(body: Any): HttpResponseData =
         headers = headersOf("content-type", "application/json")
     )
 
-private val mockAltinnServer: MockEngineConfig.() -> Unit = {
+val mockAltinnServer: MockEngineConfig.() -> Unit = {
     addHandler { request ->
         val fnr = request.url.parameters["subject"]
         val person = allePersoner.find { it.fnr == fnr }
@@ -35,7 +27,7 @@ private val mockAltinnServer: MockEngineConfig.() -> Unit = {
 
             path == "/api/serviceowner/reportees" -> {
                 val code = request.url.parameters["ServiceCode"]
-                val edition = request.url.parameters["ServiceEditionCode"]
+                val edition = request.url.parameters["ServiceEditionCode"]?.toInt()
                 val service = if (code != null && edition != null) Service(code, edition) else null
                 when (request.method) {
                     HttpMethod.Get -> jsonResponse(mockReportees(person, service))
@@ -47,7 +39,7 @@ private val mockAltinnServer: MockEngineConfig.() -> Unit = {
                 when (request.method) {
                     HttpMethod.Get -> jsonResponse(mockGetDelegationRequests(person))
                     HttpMethod.Post ->  {
-                        val request = objectMapper.readValue(request.body.toByteArray(), CreateDelegationRequest::class.java)
+                        val request = objectMapper.readValue(request.body.toByteArray(), AltinnDTO.CreateDelegationRequest::class.java)
                         jsonResponse(mockPostDelegationRequests(request))
                     }
                     else -> respond("unexpected method", HttpStatusCode.NotFound)
@@ -60,7 +52,7 @@ private val mockAltinnServer: MockEngineConfig.() -> Unit = {
     }
 }
 
-private fun mockReportees(person: Person, service: Service?): Collection<Reportee> =
+private fun mockReportees(person: Person, service: Service?): Collection<AltinnDTO.Reportee> =
     if (service == null) {
         alleEnheter.filter {
             it.OrganizationNumber in person.tilganger.keys
@@ -71,13 +63,13 @@ private fun mockReportees(person: Person, service: Service?): Collection<Reporte
         }
     }
 
-private fun mockGetDelegationRequests(person: Person): Collection<DelegationRequest> {
+private fun mockGetDelegationRequests(person: Person): Collection<AltinnDTO.DelegationRequest> {
     return alleDelegationRequests.filter {
         it.CoveredBy == person.fnr
     }
 }
 
-private fun mockPostDelegationRequests(request: CreateDelegationRequest): DelegationRequest {
+private fun mockPostDelegationRequests(requestAltinnDto: AltinnDTO.CreateDelegationRequest): AltinnDTO.DelegationRequest {
     return alleDelegationRequests[0]
 }
 
