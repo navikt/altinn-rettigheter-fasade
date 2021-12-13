@@ -8,7 +8,7 @@
         <main.class>no.nav.arbeidsgiver.altinn_rettigheter_fasade.MainKt</main.class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.version>1.4.10</kotlin.version>
-        <ktor.version>1.5.1</ktor.version>
+        <ktor.version>1.6.5</ktor.version>
     </properties>
 
    <dependencies>
